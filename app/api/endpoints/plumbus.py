@@ -1,6 +1,7 @@
 from typing import Any
 
 from fastapi import APIRouter, Body, HTTPException, Depends
+from fastapi.responses import FileResponse
 
 from app import models
 from app.core.config import settings
@@ -18,5 +19,5 @@ async def genetate_plumbus(
 ) -> Any:
     logger.info(plumbus)
     drawer = PlumbusDrawer(plumbus)
-    result = drawer.draw()
-    return {"success": result}
+    filename = drawer.draw()
+    return FileResponse(filename, media_type="image/png")
