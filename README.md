@@ -5,7 +5,7 @@
 docker build -t plumbus_image_gen .
 docker run -p 8081:8080 -v $(pwd):/app plumbus_image_gen
 ```
-swagger 
+swagger - http://127.0.0.1:8081/docs
 
 ## Fefactor
 - [ ] POST /plumbus - создать плюмбус [200 ok]

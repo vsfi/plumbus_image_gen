@@ -8,9 +8,9 @@ from app.core.config import settings
 
 from app.plumbus import PlumbusDrawer
 from app.models import PlumbusModel
-from app.core.utils import logger
+from app.core.utils import get_logger
 
-
+logger = get_logger(__name__)
 router = APIRouter()
 
 @router.post("")

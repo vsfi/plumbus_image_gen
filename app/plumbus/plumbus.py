@@ -19,8 +19,9 @@ import time
 import uuid
 
 from app.models import PlumbusModel
-from app.core.utils import logger
+from app.core.utils import get_logger
 
+logger = get_logger(__name__)
 
 class PlumbusDrawer:
     def __init__(self, model: PlumbusModel):
@@ -46,7 +47,7 @@ class PlumbusDrawer:
         return size_map[self.model.size]
 
     def get_color_overlay(self, color_hex: str, size: tuple) -> Image:
-        overlay = Image.new("RGBA", size, color_hex + "80")  # semi-transparent tint
+        overlay = Image.new("RGBA", size, color_hex + "80")
         return overlay
 
     def get_background(self, size: tuple) -> Image:
@@ -68,6 +69,7 @@ class PlumbusDrawer:
         return bg
 
     def draw(self):
+        logger.info(f"New plumbus {self.model}")
         base_path = self.shape_to_file[self.model.shape]
         if not os.path.exists(base_path):
             raise FileNotFoundError(f"Base image '{base_path}' not found.")
