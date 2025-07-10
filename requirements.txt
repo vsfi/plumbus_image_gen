@@ -1,0 +1,12 @@
+requests
+pydantic==2.8.2
+pydantic-settings==2.3.4
+fastapi
+matplotlib
+numpy
+click
+h11
+starlette
+typing_extensions
+uvicorn
+pyyaml

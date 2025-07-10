@@ -43,6 +43,10 @@ class PlumbusDrawer:
             "XXL": 3.0
         }
         if self.model.size not in size_map.keys():
+            logger.error("Invalid size provided", extra={
+                "size": self.model.size,
+                "available_sizes": list(size_map.keys())
+            })
             raise HTTPException(status_code=422, detail="Available sizes: nano, XS, S, M, L, XL, XXL")
         return size_map[self.model.size]
 
@@ -63,15 +67,40 @@ class PlumbusDrawer:
         }
         bg_path = wrap_bg_map[self.model.wrapping]
         if not os.path.exists(bg_path):
+            logger.error("Background image not found", extra={
+                "bg_path": bg_path,
+                "wrapping": self.model.wrapping
+            })
             raise FileNotFoundError(f"Background image '{bg_path}' not found.")
 
         bg = Image.open(bg_path).convert("RGBA").resize(size, Image.LANCZOS)
         return bg
 
     def draw(self):
-        logger.info(f"New plumbus {self.model}")
-        base_path = self.shape_to_file[self.model.shape]
+        start_time = time.time()
+        plumbus_id = str(uuid.uuid4())
+        
+        logger.info("Starting plumbus generation", extra={
+            "plumbus_id": plumbus_id,
+            "model": self.model.dict(),
+            "start_time": start_time
+        })
+        
+        # Используем fallback на smooth для несуществующих форм
+        if self.model.shape not in self.shape_to_file:
+            logger.warning("Shape not found, using fallback", extra={
+                "requested_shape": self.model.shape,
+                "fallback_shape": "smooth",
+                "plumbus_id": plumbus_id
+            })
+        
+        base_path = self.shape_to_file.get(self.model.shape, self.shape_to_file["smooth"])
         if not os.path.exists(base_path):
+            logger.error("Base image not found", extra={
+                "base_path": base_path,
+                "shape": self.model.shape,
+                "plumbus_id": plumbus_id
+            })
             raise FileNotFoundError(f"Base image '{base_path}' not found.")
 
         base = Image.open(base_path).convert("RGBA")
@@ -85,8 +114,13 @@ class PlumbusDrawer:
             "cyan": "#00FFFF", "lime": "#00FF00", "teal": "#008080", "brown": "#A52A2A"
         }
 
-        #не спрашивай, этот кусок я спиздил в чатгпт 
+        # Не спрашивай, этот кусок я спиздил в чатгпт 
         if self.model.color not in color_map.keys():
+            logger.error("Invalid color provided", extra={
+                "color": self.model.color,
+                "available_colors": list(color_map.keys()),
+                "plumbus_id": plumbus_id
+            })
             raise HTTPException(status_code=422, detail="Available colors: pink, deep_pink, red, blue, green, yellow, purple, orange, cyan, lime, teal, brown")
 
         r, g, b = Image.new("RGB", (1, 1), color_map[self.model.color]).getpixel((0, 0))
@@ -104,7 +138,9 @@ class PlumbusDrawer:
                     pixels[x, y] = blended
         colored = base
         
-        if random.choice([True, False]):
+        # Randomization effects
+        flipped = random.choice([True, False])
+        if flipped:
             colored = ImageOps.flip(colored)
         
         angle = random.uniform(-5, 5)
@@ -117,7 +153,21 @@ class PlumbusDrawer:
 
         filename = f"plumbus_{self.model.size}_{self.model.color}_{self.model.wrapping}_{uuid.uuid4()}.png"
         bg.save(filename)
-        print(f"Saved Plumbus image as {filename}")
+        
+        generation_time = time.time() - start_time
+        
+        logger.info("Plumbus generation completed", extra={
+            "plumbus_id": plumbus_id,
+            "generated_filename": filename,
+            "generation_time_seconds": round(generation_time, 3),
+            "final_size": canvas_size,
+            "color_applied": color_map[self.model.color],
+            "scale_factor": scale,
+            "angle_rotation": round(angle, 2),
+            "flipped": flipped,
+            "model": self.model.dict()
+        })
+        
         return filename
 
 
