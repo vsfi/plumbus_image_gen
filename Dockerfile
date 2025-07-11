@@ -1,4 +1,6 @@
-FROM registry.vsfi.ru/library/python:3.12-slim as builder
+FROM registry.vsfi.ru/library/python:3.12-bookworm as builder
+RUN printf "deb [trusted=yes] https://nexus.vsfi.ru/repository/debian-12/ bookworm main non-free-firmware\ndeb [trusted=yes] https://nexus.vsfi.ru/repository/debian-12/ bookworm-updates main non-free-firmware\ndeb [trusted=yes] https://nexus.vsfi.ru/repository/debian-12-security/ bookworm-security main\ndeb [trusted=yes] https://nexus.vsfi.ru/repository/apt-docker/ bookworm stable\n" > /etc/apt/sources.list
+RUN printf "machine nexus.vsfi.ru\nlogin debian\npassword debian\n" > /etc/apt/auth.conf && echo "" > /etc/apt/sources.list.d/debian.sources
 
 RUN apt-get update && apt-get install -y build-essential
 COPY requirements.txt requirements.txt
